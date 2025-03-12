@@ -6,6 +6,8 @@ const mongoose = require('mongoose');
 const methodOverride = require('method-override');
 const morgan = require('morgan');
 const session = require('express-session');
+const isSignedIn = require("./middleware/is-signed-in.js");
+const passUserToView = require("./middleware/pass-user-to-view.js");
 
 const authController = require('./controllers/auth.js');
 
@@ -28,6 +30,9 @@ app.use(
   })
 );
 
+//passusertoview middleware goes below session as they depend on the session information but it does before the homepage route
+app.use(passUserToView);
+
 app.get('/', (req, res) => {
   res.render('index.ejs', {
     user: req.session.user,
@@ -35,6 +40,9 @@ app.get('/', (req, res) => {
 });
 
 app.use('/auth', authController);
+
+//this middleware runs after auth routes; user needs to authenticate first
+app.use(isSignedIn);
 
 app.listen(port, () => {
   console.log(`The express app is ready on port ${port}!`);
